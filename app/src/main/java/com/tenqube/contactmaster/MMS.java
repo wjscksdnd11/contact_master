@@ -10,6 +10,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,12 +73,15 @@ public class MMS {
 
         String methodTag = "SMS_MMS";
         Log.i("smsMMS", "READ_START");
-        String uris = "content://mms-sms/conversations?simple=true";
+        String uris = "content://mms-sms/conversations/?simple=true";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             Cursor c = contentResolver.query(Uri.parse(uris), null, null, null, null, null);
             if (c == null) Log.i("smsMMS", "CURSOR NULL");
             else {
                 while (c.moveToNext()) {
+
+
+
                     String _id = c.getString(c.getColumnIndex("_id"));
                     String groupSnippet = c.getString(c.getColumnIndex("group_snippet"));
                     String recepientIds = c.getString(c.getColumnIndex("recipient_ids"));
@@ -88,17 +92,21 @@ public class MMS {
                     if (recepientIds.contains(" ")) {
                         ArrayList<String> al = new ArrayList<>(Arrays.asList(recepientIds.split(" ")));
                         for (int i = 0; i < al.size(); i++) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                                al.set(i, getContactByRecipientId((long) Float.parseFloat(al.get(i))));
+                            al.set(i, getContactByRecipientId((long) Float.parseFloat(al.get(i))));
                         }
+
                         for (String alstr : al) {
                             Log.i(methodTag, "al : " + alstr);
                             name.append(" , ").append(alstr);
                         }
-                        name = new StringBuilder(name.substring(1));
+//                        name = new StringBuilder(name.substring(1));
                     }else name = new StringBuilder(getContactByRecipientId((long)Float.parseFloat(recepientIds)));
+                     String snippet_cs = c.getString(c.getColumnIndex("snippet_cs"));
 
                     Log.i(methodTag," name : " +name);
+                    String snippet = c.getString(c.getColumnIndex("snippet"));
+                    Log.i(methodTag,"snippet_cs : " + snippet_cs);
+                    Log.i(methodTag,"snippet_: " + new String(snippet.getBytes(),Charset.forName("utf-8")));
                     long dateL = c.getLong(c.getColumnIndex("date"));
                     String date = new SimpleDateFormat("yy-MM-dd hh:mm:ss", Locale.getDefault()).format(dateL);
                     Log.i(methodTag,"date : "+ date);
